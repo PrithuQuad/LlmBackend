@@ -81,10 +81,14 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Importing routes
 import userRoutes from "./routes/userRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
+import adminRoutes from './routes/adminRoutes.js'; // Import the route
+
 
 // Using routes
 app.use("/api/user", userRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/admin", adminRoutes);
+
 
 // Error handling middleware (for debugging purposes)
 app.use((err, req, res, next) => {
