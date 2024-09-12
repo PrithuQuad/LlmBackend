@@ -2,53 +2,98 @@ import sendMail from "../middlewares/sendMail.js";
 import { User } from "../models/User.js";
 import jwt from "jsonwebtoken";
 
-export const loginUser = async (req, res) => {
-  try {
-    console.log('in here')
-    const { email } = req.body;
+// export const loginUser = async (req, res) => {
+//   try {
+//     console.log('in here')
+//     const { email } = req.body;
 
-    // Admin emails list (can be moved to env/config later)
-    const adminEmails = process.env.ADMIN_EMAILS.split(",");
+//     // Admin emails list (can be moved to env/config later)
+//     const adminEmails = process.env.ADMIN_EMAILS.split(",");
 
-    // Check if the user already exists in the database
-    let user = await User.findOne({ email });
+//     // Check if the user already exists in the database
+//     let user = await User.findOne({ email });
 
-    // If the user does not exist, create a new one and assign a role
-    if (!user) {
-      // Assign "admin" role if the email is in the adminEmails list, otherwise "user"
-      const role = adminEmails.includes(email) ? "admin" : "user";
+//     // If the user does not exist, create a new one and assign a role
+//     if (!user) {
+//       // Assign "admin" role if the email is in the adminEmails list, otherwise "user"
+//       const role = adminEmails.includes(email) ? "admin" : "user";
       
-      // Create the new user with the assigned role
-      user = await User.create({
-        email,
-        role, // Save the role to the user
-      });
-    }
+//       // Create the new user with the assigned role
+//       user = await User.create({
+//         email,
+//         role, // Save the role to the user
+//       });
+//     }
 
-    // Generate OTP and verify token as before
-    const otp = Math.floor(Math.random() * 1000000);
-    const encryptionKey=process.env.Activation_sec;
-    console.log("Encryption key", encryptionKey);
-    const verifyToken = jwt.sign({ user, otp },encryptionKey, {
-      expiresIn: "5m",
-    });
+//     // Generate OTP and verify token as before
+//     const otp = Math.floor(Math.random() * 1000000);
+//     const encryptionKey=process.env.Activation_sec;
+//     console.log("Encryption key", encryptionKey);
+//     const verifyToken = jwt.sign({ user, otp },encryptionKey, {
+//       expiresIn: "5m",
+//     });
 
-    // Send OTP email
-    await sendMail(email, "ChatBot", otp);
+//     // Send OTP email
+//     await sendMail(email, "ChatBot", otp);
 
-    // Send back response including the role
-    res.json({
-      message: "Otp sent to your mail",
-      verifyToken,
-      role: user.role, // Send the role back to the frontend
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+//     // Send back response including the role
+//     res.json({
+//       message: "Otp sent to your mail",
+//       verifyToken,
+//       role: user.role, // Send the role back to the frontend
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       message: error.message,
+//     });
+//   }
+// };
+export const registerUser = async(req, res) => {
+  const { email, password } = req.body;
+  try {
+      // Check if user exists
+      let user = await User.findOne({ email });
+      if (user) {
+          return res.status(400).json({ message: 'User already exists' });
+      }
+
+      // Create new user
+      user = new User({ email, password,role:"user" });
+      await user.save();
+
+      // Generate a JWT token
+      const token = jwt.sign({ id: user._id }, process.env.Activation_sec, { expiresIn: '10d' });
+
+      res.status(200).json({ message:"user Created Successfully",token });
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
   }
 };
+export const loginUser = async(req, res) => {
+  const { email, password } = req.body;
+  try {
+      // Check if user exists
+      const user = await User.findOne({ email });
+      if (!user) {
+          return res.status(400).json({ message: 'Invalid credentials' });
+      }
 
+      // Compare password
+      const isMatch = await user.comparePassword(password);
+      if (!isMatch) {
+          return res.status(400).json({ message: 'Invalid credentials' });
+      }
+
+      // Generate JWT token
+      const token = jwt.sign({ id: user._id },process.env.Activation_sec , { expiresIn: '10d' });
+
+      res.json({message:"login successful", token,role:user.role });
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
+  }
+};
 
 
 export const verifyUser = async (req, res) => {

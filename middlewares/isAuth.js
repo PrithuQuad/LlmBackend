@@ -10,9 +10,10 @@ export const isAuth = async (req, res, next) => {
         message: "Please login",
       });
 
-    const decode = jwt.verify(token, process.env.Jwt_sec);
+    const decode = jwt.verify(token, process.env.Activation_sec);
+    console.log(decode,'this is token info')
 
-    req.user = await User.findById(decode._id);
+    req.user = await User.findById(decode.id);
 
     next();
   } catch (error) {

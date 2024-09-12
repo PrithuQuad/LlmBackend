@@ -6,6 +6,7 @@ import fs from 'fs';
 export const createChat = async (req, res) => {
   try {
     const userId = req.user._id;
+    console.log(userId,'this is user id')
 
     const chat = await Chat.create({
       user: userId,
@@ -13,6 +14,7 @@ export const createChat = async (req, res) => {
 
     res.json(chat);
   } catch (error) {
+    console.log("there is an error ",error.message)
     res.status(500).json({
       message: error.message,
     });
