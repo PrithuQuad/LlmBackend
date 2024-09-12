@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 
 export const loginUser = async (req, res) => {
   try {
+    console.log('in here')
     const { email } = req.body;
 
     // Admin emails list (can be moved to env/config later)
@@ -26,8 +27,9 @@ export const loginUser = async (req, res) => {
 
     // Generate OTP and verify token as before
     const otp = Math.floor(Math.random() * 1000000);
-
-    const verifyToken = jwt.sign({ user, otp }, process.env.Activation_sec, {
+    const encryptionKey=process.env.Activation_sec;
+    console.log("Encryption key", encryptionKey);
+    const verifyToken = jwt.sign({ user, otp },encryptionKey, {
       expiresIn: "5m",
     });
 
@@ -52,9 +54,10 @@ export const loginUser = async (req, res) => {
 export const verifyUser = async (req, res) => {
   try {
     const { otp, verifyToken } = req.body;
-
+   const encryptionKey= process.env.Activation_sec
+   console.log(encryptionKey,'this is quadrafort ',otp);
     // Verify the OTP token
-    const verify = jwt.verify(verifyToken, process.env.Activation_sec);
+    const verify = jwt.verify(verifyToken, encryptionKey);
 
     // If the verification failed, send an error response
     if (!verify)
@@ -88,6 +91,7 @@ export const verifyUser = async (req, res) => {
       token, // Send the newly created JWT token to the frontend
     });
   } catch (error) {
+    console.log(error);
     // Handle any errors that occur during verification
     res.status(500).json({
       message: error.message,

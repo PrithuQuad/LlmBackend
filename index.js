@@ -59,22 +59,23 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 
 // CORS configuration
-app.use(cors({
-  origin: (origin, callback) => {
-    console.log('Origin:', origin);
-    console.log('Allowed origin:', process.env.CLIENT_URL);
-    if (!origin || origin === process.env.CLIENT_URL) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
-}));
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     console.log('Origin:', origin);
+//     console.log('Allowed origin:', process.env.CLIENT_URL);
+//     if (!origin || origin === process.env.CLIENT_URL) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+// }));
 
-// Preflight request handling
-app.options('*', cors());
+// // Preflight request handling
+// app.options('*', cors());
 
+app.use(cors());
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -82,7 +83,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 import userRoutes from "./routes/userRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import adminRoutes from './routes/adminRoutes.js'; // Import the route
-
 
 // Using routes
 app.use("/api/user", userRoutes);
